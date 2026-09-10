@@ -1,6 +1,22 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
+import {Strategy as JwtStrategy, ExtractJwt} from 'passport-jwt';
 import { userService } from '../services/user.service.js';
+import {env} from './env.config.js'
+
+
+/**
+ * Función extractor personalizada para obtener el JWT desde la cookie
+ */
+const cookieExtractor = (req) => {
+  let token = null;
+  if (req && req.cookies) {
+    token = req.cookies.token || req.cookies.currentUser;
+  }
+  return token;
+};
+
+
 
 export const initializePassport = () => {
     // Estrategia de login
@@ -55,6 +71,35 @@ export const initializePassport = () => {
       }
     )
   );
+
+// Estrategia 'jwt' para rutas protegidas
+  passport.use(
+    'jwt',
+    new JwtStrategy(
+      {
+        jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
+        secretOrKey: env.JWT_SECRET
+      },
+      async (jwt_payload, done) => {
+        try {
+          // jwt_payload contiene los datos codificados en el token { id, email, role }
+          if (!jwt_payload) {
+            return done(null, false, { message: 'Token no válido' });
+            // return done(error);
+          }
+
+          // Retornamos el payload para que Passport lo asigne automáticamente a req.user
+          return done(null, jwt_payload);
+        } catch (error) {
+          console.log(error)
+         return done(error, false);
+           // return done(error);
+        }
+      }
+    )
+  );
+  
+
 
 
 };
