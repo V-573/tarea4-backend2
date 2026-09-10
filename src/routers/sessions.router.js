@@ -6,8 +6,11 @@ import { loginSchema, registerSchema } from '../schemas/auth.schema.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 
 const router = Router();
-
-router.post('/register', validateBody(registerSchema), register);
+// Flujo de Registro: Zod -> Passport ('register') -> Controller
+router.post('/register',
+     validateBody(registerSchema),
+     passport.authenticate('register', {session:false}),
+      register);
 
 // Flujo: 1. Valida formato (Zod) -> 2. Autentica usuario/password (Passport) -> 3. Responde/Cookie (Controller)
 router.post('/login', 

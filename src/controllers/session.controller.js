@@ -3,12 +3,12 @@ import { generateToken } from "../utils/jwt.util.js";
 
 export const register = async (req, res, next) => {
   try {
-    const userPayload = await userService.registerUser(req.body);
-
+   // const userPayload = await userService.registerUser(req.body); le doy manejo desde passport
+// req.user contiene lo que devolvió done(null, newUser) desde la estrategia
     res.status(201).json({
       status: 'success',
       message: 'Usuario registrado correctamente',
-      payload: userPayload
+      payload: req.user
     });
   } catch (error) {
     // Pasa el error al middleware global de errores
@@ -23,19 +23,7 @@ next(error);
 
 export const login = async (req, res, next) => {
   try {
-
-
-         // const { user, token } = await userService.loginUser(req.body);
-
-         // req.user ya fue adjuntado por Passport tras verificar con bcrypt y la BD
-    const user = req.user;
-
-    // Crear el payload y firmar el JWT
-    const token = generateToken({
-      id: user._id,
-      email: user.email,
-      role: user.role
-    });
+         const { user, token } = req.user;
 
     res.cookie('token', token,{
       httpOnly: true,
@@ -47,13 +35,16 @@ export const login = async (req, res, next) => {
     res.status(200).json({
       status: 'success',
       message: 'Inicio de sesión exitoso',
-      payload: user
+      payload: {
+id:user.id,
+email: user.email,
+role: user.role
+
+      } 
     });
+
   } catch (error) {
-    // res.status(error.statusCode || 500).json({
-    //   status: 'error',
-    //   message: error.message || 'Error interno del servidor'
-    // });
+   
     next(error);
   }
 };

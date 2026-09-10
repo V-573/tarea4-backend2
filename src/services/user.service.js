@@ -55,7 +55,9 @@ class UserService {
       // const error = new Error('Credenciales inválidas');
       // error.statusCode = 401;
       // throw error;
-      throw new CustomError("Credenciales invalidas", 401);
+      throw new CustomError(
+        "Credenciales invalidas", 
+        401);
     }
 
     // Crear el payload para el JWT (NO incluir contraseñas ni datos sensibles)
