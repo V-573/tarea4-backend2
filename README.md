@@ -188,3 +188,48 @@ src/
 └── utils/           # Utilidades de encriptación
 
 ```
+
+
+# API REST Authentication — Architecture & Passport Strategy
+
+API REST modular desarrollada con Node.js y Express, estructurada bajo una arquitectura por capas (**Router, Controller, Service, Repository**) con manejo global de errores y validación estricta de datos.
+
+El sistema implementa un esquema de autenticación sin estado (*stateless*) mediante **JSON Web Tokens (JWT)** almacenados en cookies seguras (`httpOnly`), integrando **Passport.js** y **Zod** para la gestión de identidad y esquemas de entrada.
+
+---
+
+## Architecture Overview
+
+* **Router:** Intercepta la petición HTTP, ejecuta middleware de validación sintáctica (Zod) y aplica middlewares de autenticación (Passport).
+* **Controller:** Maneja el ciclo de respuesta HTTP, gestiona el envío/destrucción de cookies de sesión y formatea la salida JSON.
+* **Service:** Contiene la lógica de negocio pura (validación de registros duplicados, hash de contraseñas con `bcrypt` y firma de tokens JWT).
+* **Repository (DAO):** Capa de abstracción para la interacción directa con la base de datos (MongoDB / Mongoose).
+* **Passport Strategies:** Encapsula la lógica de autenticación local e inspección de JWT.
+
+---
+
+## Authentication & Security Setup
+
+1. **Zod Validation:** Valida la estructura y tipos de datos en `req.body` antes de llegar a la lógica de autenticación.
+2. **Passport Local Strategy (`register` & `login`):** Intercepta las credenciales, delegando al `UserService` la verificación de hashes bcrypt y la creación del usuario.
+3. **Passport JWT Strategy (`jwt`):** Extrae de forma segura la cookie enviada por el navegador mediante un `cookieExtractor` personalizado, verifica la firma del token y carga el payload en `req.user`.
+4. **Cookie Strategy (`httpOnly`):** Previene ataques XSS impidiendo el acceso a la cookie desde el contexto de cliente de JavaScript.
+
+---
+
+## Endpoints Documentation
+
+### 1. Register User
+Registra un nuevo usuario en la base de datos previa verificación del esquema e inexistencia del email.
+
+* **URL:** `/api/sessions/register`
+* **Method:** `POST`
+* **Middlewares:** `validateBody(registerSchema)`, `passport.authenticate('register')`
+* **Request Body:**
+  ```json
+  {
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john.doe@example.com",
+    "password": "SecurePassword123"
+  }
