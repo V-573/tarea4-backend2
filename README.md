@@ -226,10 +226,104 @@ Registra un nuevo usuario en la base de datos previa verificación del esquema e
 * **Method:** `POST`
 * **Middlewares:** `validateBody(registerSchema)`, `passport.authenticate('register')`
 * **Request Body:**
-  ```json
+  ````json
   {
     "first_name": "John",
     "last_name": "Doe",
     "email": "john.doe@example.com",
     "password": "SecurePassword123"
   }
+  ````
+Success Response (201 Created):
+
+
+````json
+{
+  "status": "success",
+  "message": "Usuario registrado correctamente",
+  "payload": {
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john.doe@example.com",
+    "role": "user"
+  }
+}
+````
+
+### 2. Login User
+Verifica las credenciales del usuario, genera un token JWT firmado y establece la cookie token en la respuesta HTTP.
+
+* **URL:**  /api/sessions/login
+
+* **Method:** POST
+
+* **Middlewares:** validateBody(loginSchema), passport.authenticate('login')
+
+### Request Body:
+````json
+{
+  "email": "john.doe@example.com",
+  "password": "SecurePassword123"
+}
+````
+
+Success Response (200 OK)
+````json
+{
+  "status": "success",
+  "message": "Inicio de sesión exitoso",
+  "payload": {
+    "id": "668e9c63f1148e9077e321ad",
+    "email": "john.doe@example.com",
+    "role": "user"
+  }
+}
+````
+
+### 3. Get Current User Session (Protected Route)
+Obtiene la información del usuario autenticado leyendo la cookie de sesión activa.
+
+* **URL:** /api/sessions/current
+
+* **Method:** GET
+
+* **Middlewares:** passport.authenticate('jwt', { session: false })
+
+* **Headers:** Cookie automática agregada por el navegador o Postman (token=...).
+
+Success Response (200 OK)
+````json
+{
+  "status": "success",
+  "payload": {
+    "id": "668e9c63f1148e9077e321ad",
+    "email": "john.doe@example.com",
+    "role": "user"
+  }
+}
+````
+
+Error Response (401 Unauthorized)
+
+````json
+{
+  "status": "error",
+  "message": "No autorizado: Token no proporcionado o inválido"
+}
+````
+
+### 4. Logout User
+
+Invalida la sesión del cliente destruyendo la cookie almacenada en el navegador.
+
+* **URL:** /api/sessions/logout
+
+* **Method:** POST
+
+Success Response (200 OK)
+````JSON
+{
+  "status": "success",
+  "message": "Sesión cerrada correctamente"
+}
+````
