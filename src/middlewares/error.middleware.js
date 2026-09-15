@@ -22,6 +22,7 @@ export const errorHandler = (err, req, res, next)=>{
   console.error(`[Error] ${req.method} ${req.url} - Status: ${statusCode} - ${message}`);
 
   return res.status(statusCode).json({
+    // status: 'error',
     status: 'error',
     message: statusCode === 500 ? 'Error interno del servidor' : message
   });

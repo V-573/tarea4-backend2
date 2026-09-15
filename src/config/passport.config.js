@@ -3,6 +3,7 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import {Strategy as JwtStrategy, ExtractJwt} from 'passport-jwt';
 import { userService } from '../services/user.service.js';
 import {env} from './env.config.js'
+import { CustomError } from '../utils/customError.util.js';
 
 
 /**
@@ -84,15 +85,15 @@ export const initializePassport = () => {
         try {
           // jwt_payload contiene los datos codificados en el token { id, email, role }
           if (!jwt_payload) {
-            return done(null, false, { message: 'Token no válido' });
-            // return done(error);
+          // Si por alguna razón el payload está vacío
+            return done(new CustomError('Token no válido', 401));
           }
 
           // Retornamos el payload para que Passport lo asigne automáticamente a req.user
           return done(null, jwt_payload);
         } catch (error) {
           console.log(error)
-         return done(error, false);
+         return done(error);
            // return done(error);
         }
       }
